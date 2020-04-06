@@ -32,6 +32,24 @@ class Perceptron(object):
     def predict(self, X):
         return np.where(self.net_input(X) >= 0.0, 1, -1)
 
+class Multiclass(object):
+
+    def __init__(self, ppn1, ppn3):
+        self.ppn1 = ppn1
+        self.ppn3 = ppn3
+
+    def predict(self, X):
+        result = []
+        for data in X:
+            if self.ppn1.predict(data) == 1:
+                result.append(0)
+            elif self.ppn3.predict(data) == 1:
+                result.append(1)
+            else:
+                result.append(2)
+
+        return np.array(result)
+
 
 def main():
 
@@ -62,68 +80,33 @@ def main():
     ppn3 = Perceptron()
     ppn3.fit(X_train, y3)
 
-    labels = []
-    found = 0
-    for data in X_test:
-        if ppn1.predict(data) == 1:
-            labels.append(0)
-            found+= 1
-        if ppn2.predict(data) == 1:
-            labels.append(1)
-            found += 1
-        if ppn3.predict(data) == 1:
-            labels.append(2)
-            found += 1
-        else:
-            labels.append('X')
+    multi = Multiclass(ppn1,ppn3)
+    print(multi.predict(X_test))
 
-
-    print(*labels, sep = ", ")
-    print("Found {}/{} labels".format(found, len(X_test)))
-
-
-    # print(y1)
-
-    # y1[(y1 != 1)] = -1
-    # y1[y1 == 1] = 1
-    # ppn1 = Perceptron(eta=0.1, n_iter=10)
-    # ppn1.fit(X, y1)
-    #
-    # y2[(y2 != 1)] = -1
-    # y2[y2 == 1] = 1
-    # ppn2 = Perceptron(eta=0.1, n_iter=10)
-    # ppn2.fit(X, y2)
-    #
-    # # print(X)
-    # classes = []
-    #
-    # for data in X:
-    #     if ppn.predict(data) == 1:
-    #         classes.append(0)
+    # labels = []
+    # found = 0
+    # for data in X_test:
     #     if ppn1.predict(data) == 1:
-    #         classes.append(1)
+    #         labels.append(0)
+    #         found+= 1
     #     if ppn2.predict(data) == 1:
-    #         classes.append(2)
-    #
-    # print(classes)
+    #         labels.append(1)
+    #         found += 1
+    #     if ppn3.predict(data) == 1:
+    #         labels.append(2)
+    #         found += 1
+    #     else:
+    #         labels.append('X')
 
 
+    # print(*labels, sep = ", ")
+    # print("Found {}/{} labels".format(found, len(X_test)))
 
-    #
-    # X_train_01_subset = X_train[(y_train == 0) | (y_train == 1)]
-    # y_train_01_subset = y_train[(y_train == 0) | (y_train == 1)]
-
-    # w perceptronie wyjście jest albo 1 albo -1
-    # y_train_01_subset[(y_train_01_subset == 0)] = -1
-    # print(y_train_01_subset)
-
-
-
-    # plot_decision_regions(X=X_train_01_subset, y=y_train_01_subset, classifier=ppn)
-    # plt.xlabel(r'$x_1$')
-    # plt.ylabel(r'$x_2$')
-    # plt.legend(loc='upper left')
-    # plt.show()
+    plot_decision_regions(X=X_test, y=y_test, classifier=multi)
+    plt.xlabel(r'$x_1$')
+    plt.ylabel(r'$x_2$')
+    plt.legend(loc='upper left')
+    plt.show()
 
 
 if __name__ == '__main__':
