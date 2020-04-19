@@ -6,7 +6,7 @@ from plotka import plot_decision_regions
 
 class Perceptron(object):
 
-    def __init__(self, eta=0.025, n_iter=500):
+    def __init__(self, eta=0.05, n_iter=2000):
         self.eta = eta
         self.n_iter = n_iter
 
@@ -34,9 +34,23 @@ class Perceptron(object):
 
 class Multiclass(object):
 
-    def __init__(self, ppn1, ppn3):
-        self.ppn1 = ppn1
-        self.ppn3 = ppn3
+    def __init__(self):
+        self.ppn1 = Perceptron()
+        self.ppn3 = Perceptron()
+
+    def fit(self, X, y):
+        y1 = y.copy()
+        y3 = y.copy()
+
+        y1[(y1 != 0)] = -1
+        y1[y1 == 0] = 1
+
+        y3[(y3 != 2)] = -1
+        y3[y3 == 2] = 1
+
+        self.ppn1.fit(X, y1)
+        self.ppn3.fit(X, y3)
+
 
     def predict(self, X):
         result = []
@@ -44,9 +58,9 @@ class Multiclass(object):
             if self.ppn1.predict(data) == 1:
                 result.append(0)
             elif self.ppn3.predict(data) == 1:
-                result.append(1)
-            else:
                 result.append(2)
+            else:
+                result.append(1)
 
         return np.array(result)
 
@@ -61,46 +75,9 @@ def main():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1, stratify=y)
 
-    y1 = y_train.copy()
-    y2 = y_train.copy()
-    y3 = y_train.copy()
-
-    y1[(y1 != 0)] = -1
-    y1[y1 == 0] = 1
-    ppn1 = Perceptron()
-    ppn1.fit(X_train, y1)
-
-    y2[(y2 != 1)] = -1
-    y2[y2 == 1] = 1
-    ppn2 = Perceptron()
-    ppn2.fit(X_train, y2)
-
-    y3[(y3 != 2)] = -1
-    y3[y3 == 2] = 1
-    ppn3 = Perceptron()
-    ppn3.fit(X_train, y3)
-
-    multi = Multiclass(ppn1,ppn3)
+    multi = Multiclass()
+    multi.fit(X_train, y_train)
     print(multi.predict(X_test))
-
-    # labels = []
-    # found = 0
-    # for data in X_test:
-    #     if ppn1.predict(data) == 1:
-    #         labels.append(0)
-    #         found+= 1
-    #     if ppn2.predict(data) == 1:
-    #         labels.append(1)
-    #         found += 1
-    #     if ppn3.predict(data) == 1:
-    #         labels.append(2)
-    #         found += 1
-    #     else:
-    #         labels.append('X')
-
-
-    # print(*labels, sep = ", ")
-    # print("Found {}/{} labels".format(found, len(X_test)))
 
     plot_decision_regions(X=X_test, y=y_test, classifier=multi)
     plt.xlabel(r'$x_1$')

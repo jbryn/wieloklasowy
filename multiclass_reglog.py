@@ -6,7 +6,7 @@ from plotka import plot_decision_regions
 
 
 class LogisticRegressionGD(object):
-    def __init__(self, eta=0.05, n_iter=100, random_state=1):
+    def __init__(self, eta=0.05, n_iter=2000, random_state=1):
         self.eta = eta
         self.n_iter = n_iter
         self.random_state = random_state
@@ -35,9 +35,25 @@ class LogisticRegressionGD(object):
 
 
 class Multiclass(object):
-    def __init__(self, cls1, cls3):
-        self.cls1 = cls1
-        self.cls3 = cls3
+    def __init__(self):
+        self.cls1 = LogisticRegressionGD()
+        self.cls3 = LogisticRegressionGD()
+
+    def fit(self, X, y):
+
+        y1 = y.copy()
+        y3 = y.copy()
+
+        y1[(y1 != 0)] = -3
+        y1[y1 == 0] = 1
+        y1[y1 == -3] = 0
+
+        y3[(y3 != 2)] = -3
+        y3[y3 == 2] = 1
+        y3[y3 == -3] = 0
+
+        self.cls1.fit(X, y1)
+        self.cls3.fit(X, y3)
 
     def predict(self, X):
         result = []
@@ -45,9 +61,9 @@ class Multiclass(object):
             if self.cls1.predict(data) == 1:
                 result.append(0)
             elif self.cls3.predict(data) == 1:
-                result.append(1)
-            else:
                 result.append(2)
+            else:
+                result.append(1)
 
 
         return np.array(result)
@@ -56,33 +72,13 @@ def main():
     iris = datasets.load_iris()
     X = iris.data[:, [1, 3]]
     y = iris.target
-    y1 = y.copy()
-    y2 = y.copy()
-    y3 = y.copy()
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=1, stratify=y)
 
+    multi = Multiclass()
+    multi.fit(X_train, y_train)
+    multi.predict(X_test)
 
-    y1[(y1 != 0)] = -3
-    y1[y1 == 0] = 1
-    y1[y1 == -3] = 0
-
-    y3[(y3 != 2)] = -3
-    y3[y3 == 2] = 1
-    y3[y3 == -3] = 0
-
-    #w regresji logarytmicznej wyjście przyjmuje wartości 0 lub 1 (prawdopodobieństwa)
-    lrgd1 = LogisticRegressionGD(eta=0.05, n_iter=1000, random_state=1)
-    lrgd1.fit(X, y1)
-
-    lrgd3 = LogisticRegressionGD(eta=0.05, n_iter=1000, random_state=1)
-    lrgd3.fit(X, y3)
-
-
-    multi = Multiclass(lrgd1, lrgd3)
-    print(multi.predict(X_test))
-
-    print(lrgd1.predict(X_test))
 
     plot_decision_regions(X=X_test, y=y_test, classifier=multi)
     plt.xlabel(r'$x_1$')
